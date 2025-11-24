@@ -1,100 +1,170 @@
 #include <stdio.h>
-#include <conio.h>
 
-void printBoard();
-int checkWin();
-void system();
 
-char board[]={'0','1','2','3','4','5','6','7','8','9'};
+char board[] = {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
+int win_pos[] = {9, 9, 9};
+int win_lines[8][3] = {
+    {0, 1, 2}, // 1st row
+    {3, 4, 5}, // 2nd row
+    {6, 7, 8}, // 3rd row
+    {0, 3, 6}, // 1st col
+    {1, 4, 7}, // 2nd col
+    {2, 5, 8}, // 3rd col
+    {0, 4, 8}, // rht dig
+    {2, 4, 6}  // lft dig
+};
 
-void main(){
-    int player=1,input,status=-1;
-    printBoard();
-   
+void print_board(int status);
+int check_win();
 
-    while (status==-1)
+int main()
+{
+
+    int player = 1, box, flag = 0, status = 0;
+    char mark = 'X';
+    while (1)
     {
-        player=(player%2==0) ? 2 : 1;
-        char mark=(player==1) ? 'X' :'O';
-        printf("Please enter Number For Player %d\n",player);
-        scanf("%d",&input);
-    if(input<1 || input>9){
-        printf("invalid input");
+        print_board(status);
+        mark = player == 1 ? 'X' : 'O';
+        if (flag)
+            printf("Invalid input by Player %d\n\tEnter again.", player);
+        printf("Player %d [%c], enter position (1-9): ", player, mark);
+        if (scanf("%d", &box) != 1) // char validation
+        {
+            while (getchar() != '\n');
+            flag = 1;
+            continue;
+        }
+        if (box < 1 || box > 9 || board[box - 1] != box + '0') // valid bounds + occupied box
+        {
+            flag = 1;
+            continue;
+        }
+        board[box - 1] = mark;
+        status = check_win();
+        if (status)
+        {
+            print_board(status);
+            if (status == 1)
+            {
+                printf("Player %d Wins!!\n", player);
+            }
+            else if (status == -1)
+            {
+                printf("\tThis is a draw...\n");
+            }
+            printf("");
+            char choice = 'y';
+            do
+            {
+                if (choice != 'y')
+                    printf("Enter valid input.\n");
+                printf("\nPlay again? (y/n): ");
+                scanf(" %c", &choice);
+            } while (choice != 'y' && choice != 'Y' && choice != 'n' && choice != 'N');
+
+            if (choice == 'y' || choice == 'Y')
+            {
+            	int i;
+                for (i = 0; i < 9; i++)
+                    board[i] = (char)i + 49;
+                for (i = 0; i < 3; i++)
+                    win_pos[i] = 9;
+
+                player = 1;
+                status = 0;
+                flag = 0;
+                continue;
+            }
+            else
+                return 0;
+        }
+        flag = 0;
+        while (getchar() != '\n'); // float validation
+        player = player == 1 ? 2 : 1;
     }
-
-    board[input]=mark;
-    printBoard();
-
-    int result=checkWin();
-
-    if(result==1){
-        printf("Player %d is the Winner",player);
-        return;
-    }else if(result==0){
-        printf("draw");
-        return;
-    }
-
-    player++;
-    }
-    
-    
+    return 0;
 }
 
-void printBoard(){
+void print_board(int status)
+{
     system("cls");
+    printf("\t+----------------+\n");
+    printf("\t¦TIC TAC TOE GAME¦\n");
+    printf("\t+----------------+\n");
+    printf("\tPlayer 1: X (RED)");
+    printf("\n\tPlayer 2: O (Green)\n");
+    int i;
+    for (i = 0; i < 3; i++)
+    {
+        printf("\n\t    ");
+        int j,k;
+        for ( j = 0; j < 3; j++)
+        {
+            char mark = board[j + i * 3];
+            if (mark == 'X')
+                printf("");
+            else if (mark == 'O')
+                printf("");
+            if (status)
+                for (k = 0; k < 3; k++)
+                    if (win_pos[k] == j + i * 3)
+                        printf("");
+            printf("%c ", mark);
+            j != 2 ? printf(" ¦ ") : 0;
+        }
+        i != 2 ? printf("\n\t   ---+---+---") : 0;
+    }
     printf("\n\n");
-    printf("=== TIC TAC TOE ===\n\n");
-    printf("     |     |     \n");
-    printf("  %c  |  %c  |  %c  \n",board[1],board[2],board[3]);
-    printf("||_\n");
-    printf("     |     |     \n");
-    printf("  %c  |  %c  |  %c  \n",board[4],board[5],board[6]);
-    printf("||_\n");
-    printf("     |     |     \n");
-    printf("  %c  |  %c  |  %c  \n",board[7],board[8],board[9]);
-    printf("     |     |     \n");
-    printf("\n\n");
+    /*
+    i j -> n
+    0 0 -> 0
+    0 1 -> 1
+    0 2 -> 2
+    1 0 -> 3
+    1 1 -> 4
+    1 2 -> 5
+    2 0 -> 6
+    2 1 -> 7
+    2 2 -> 8
+    n = j + i*3
+    */
 }
 
-
-int checkWin(){
-
-    if(board[1]==board[2] && board[2]==board[3]){
-        return 1;
-    }
-    if(board[1]==board[4] && board[4]==board[7]){
-        return 1;
-    }
-    if(board[7]==board[8] && board[8]==board[9]){
-        return 1;
-    }
-    if(board[3]==board[6] && board[6]==board[9]){
-        return 1;
-    }
-    if(board[1]==board[5] && board[5]==board[9]){
-        return 1;
-    }
-    if(board[3]==board[5] && board[5]==board[7]){
-        return 1;
-    }
-    if(board[2]==board[5] && board[5]==board[8]){
-        return 1;
-    }
-    if(board[4]==board[5] && board[5]==board[6]){
-        return 1;
-    }
-
-    int count=0;
-    for (int i = 1; i <=9; i++)
+int check_win()
+{
+    // Win Check
+    int i;
+    for (i = 0; i < 8; i++)
     {
-        if(board[i]=='X' || board[i]=='O'){
-            count++;
+        int pos1 = win_lines[i][0];
+        int pos2 = win_lines[i][1];
+        int pos3 = win_lines[i][2];
+        if (board[pos1] == board[pos2] && board[pos2] == board[pos3])
+        {
+            win_pos[0] = pos1;
+            win_pos[1] = pos2;
+            win_pos[2] = pos3;
+            return 1;
         }
     }
-    
-    if(count==9){
-        return 0;
+
+    // Draw Check
+    int filled_box = 0;
+    for (i = 0; i < 9; i++)
+    {
+        if (board[i] == 'X' || board[i] == 'O')
+            filled_box++;
     }
-    return -1;
+    if (filled_box == 9)
+        return -1;
+    return 0; // continue as normal
 }
+
+/*
+ 1 ¦ 2 ¦ 3
+---+---+---
+ 4 ¦ 5 ¦ 6
+---+---+---
+ 7 ¦ 8 ¦ 9
+*/
